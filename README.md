@@ -873,3 +873,158 @@ print(partial_repr(user_group, "id" "name", users=users_repr))
 # UserGroup(id=0, name='developers', users=["User(id=0, name='alice')", "User(id=1, name='bob')", "User(id=2, name='eve')"])
 
 ```
+
+
+# Decorators
+
+Let `f` be a function which takes callable objects as the arguments.  
+We can write `@f` above definitions of other functions then modify their behaviours.  
+
+```py
+# src/functions/decorators/trace01.py
+
+from typing import Callable, Any
+
+
+def trace(f: Callable) -> Callable:
+    """Modify the given function `f`
+    to print the function name before calling
+    and the return value after returned.
+
+    Args:
+        f (Callable): a function
+
+    Returns:
+        Callable: tracing function
+    """
+    def wrapper() -> Any:
+        fname = f"{f.__name__}()"
+
+        print(f"calling {fname}")
+        res = f()
+        print(f"{fname} returned `{res}`")
+
+        return res
+    return wrapper
+
+
+@trace
+def one() -> int:
+    return 1
+
+
+print(one.__name__)  # wrapper
+
+one()
+# calling one()
+# one() returned `1`
+
+```
+
+`@f` is just syntax sugar; we can modify `one()` directly passing `trace()`.  
+
+```py
+# src/functions/decorators/trace02.py
+
+from typing import Callable, Any
+
+
+def trace(f: Callable) -> Callable:
+    """Modify the given function `f`
+    to print the function name before calling
+    and the return value after returned.
+
+    Args:
+        f (Callable): a function
+
+    Returns:
+        Callable: tracing function
+    """
+    def wrapper() -> Any:
+        fname = f"{f.__name__}()"
+
+        print(f"calling {fname}")
+        res = f()
+        print(f"{fname} returned `{res}`")
+
+        return res
+    return wrapper
+
+
+def one() -> int:
+    return 1
+
+
+one = trace(one)
+
+print(one.__name__)  # wrapper
+
+one()
+# calling one()
+# one() returned `1`
+
+```
+
+An example of decorator wrapping a function which takes some arguments.  
+
+```py
+# src/functions/decorators/trace03.py
+
+from typing import Callable, Any
+
+
+def fmt_f_call(f: Callable, *args, **kwargs) -> str:
+    args_s = ", ".join([str(arg) for arg in args])
+    kwargs_s = ", ".join([f"{k}={v}" for k, v in kwargs.items()])
+
+    return f"{f.__name__}({args_s if args else ''}"\
+        f"{', ' if (args and kwargs) else '' }{kwargs_s if kwargs else ''})"
+
+
+def trace(f: Callable) -> Callable:
+    """Modify the given function `f`
+    to print the function name before calling
+    and the return value after returned.
+
+    Args:
+        f (Callable): a function
+
+    Returns:
+        Callable: tracing function
+    """
+    def wrapper(*args, **kwargs) -> Any:
+        f_call_s = fmt_f_call(f, *args, **kwargs)
+
+        print(f_call_s)
+        res = f(*args, **kwargs)
+        print(f"{f_call_s} returned `{res}`")
+
+        return res
+    return wrapper
+
+
+@trace
+def one() -> int:
+    return 1
+
+
+@trace
+def eq_name(name1: str, name2: str, case_sensitive: bool = True) -> bool:
+    if case_sensitive:
+        return name1 == name2
+
+    return name1.lower() == name2.lower()
+
+
+one()
+# one()
+# one() returned `1`
+
+eq_name("alice", "Alice", case_sensitive=False)
+# eq_name(alice, Alice, case_sensitive=False)
+# eq_name(alice, Alice, case_sensitive=False) returned `True`
+
+```
+
+
+
