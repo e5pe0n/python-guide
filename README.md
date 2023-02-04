@@ -16,6 +16,8 @@ Assume Python version is >= 3.10.
   - [Default Arguments](#default-arguments)
   - [Variadic Arguments](#variadic-arguments)
   - [Decorator](#decorator)
+- [Special Methods (Dunder Methods)](#special-methods-dunder-methods)
+- [Enums](#enums)
 
 <br>
 
