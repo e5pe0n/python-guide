@@ -22,6 +22,8 @@ Assume Python version is >= 3.10.
 <br>
 
 -[References](#references)
+  - [Python documentation](https://docs.python.org/3.11/index.html)
+  - [Fluent Python, 2nd Ed. / Luciano Ramalho / (O'Reilly)](https://www.oreilly.com/library/view/fluent-python-2nd/9781492056348/)
 
 # Subscripting
 
