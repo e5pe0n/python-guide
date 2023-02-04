@@ -2,7 +2,7 @@
 
 Personal guide to write practical code in Python.  
 
-Assume Python version is >= 3.10.  
+Assuming Python version is >= 3.10.  
 
 # Contents
 
