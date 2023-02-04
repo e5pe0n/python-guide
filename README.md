@@ -1384,4 +1384,60 @@ print(alice == student_alice)   # True
 ```
 
 
+# Enums
 
+We can define *Enum*s for a set of counted values.  
+A Enum consists of *member*s, and each member consists of *name* and *value*.  
+
+For example, in code below *member*s of Enum `Permission` are `Permission.READ`, `Permission.WRITE` and `Permission.EXECUTE`.  
+The member `Permission.READ` has the name `"READ"` and the value `"read"`
+
+```py
+# src/enums.py
+
+from enum import Enum
+
+
+class Permission(Enum):
+    READ = "read"
+    WRITE = "write"
+    EXECUTE = "execute"
+
+
+# get *member* through property access
+r = Permission.READ
+
+print(r == Permission.READ)  # True
+print(r == Permission.WRITE)    # False
+
+# get *member* using the *name*
+print(r == Permission["READ"])  # True
+
+# get *member* using the *value*
+print(r == Permission("read"))  # True
+
+
+print(r == "read")  # False; *member* vs. *value*
+
+# get *name*
+print(Permission.READ.name)  # "READ"
+
+# get *value*
+print(Permission.READ.value)    # "read"
+
+
+# check if the object is one of `Permissino` enum
+print(r in Permission)  # True
+
+
+# listing *member*s
+print(list(Permission))
+# [<Permission.READ: 'read'>, <Permission.WRITE: 'write'>, <Permission.EXECUTE: 'execute'>] # noqa E501
+
+# listing *name*s
+print([p.name for p in Permission])  # ['READ', 'WRITE', 'EXECUTE']
+
+# listing *value*s
+print([p.value for p in Permission])    # ['read', 'write', 'execute']
+
+```
