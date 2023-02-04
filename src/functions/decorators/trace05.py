@@ -27,11 +27,7 @@ def fmt_f_return_with_dt(
         f" {fmt_f_return(f, return_value, *args, **kwargs)}"
 
 
-def trace(
-    f_call_fmter: Callable[[Callable, ParamSpecArgs, ParamSpecKwargs], str],
-    f_return_fmter:
-        Callable[[Callable, Any, ParamSpecArgs, ParamSpecKwargs], str],
-) -> Callable:
+class trace:
     """Modify the given function `f`
     to print some information on the function
     before calling and after returned.
@@ -51,17 +47,27 @@ def trace(
     Returns:
         Callable: a modified function
     """
-    def wrapper(f: Callable) -> Callable:
-        def _wrapper(*args, **kwargs) -> Any:
-            print(f_call_fmter(f, *args, **kwargs))
+
+    def __init__(
+        self,
+        f_call_fmter: Callable[
+            [Callable, ParamSpecArgs, ParamSpecKwargs], str],
+        f_return_fmter:
+        Callable[[Callable, Any, ParamSpecArgs, ParamSpecKwargs], str],
+    ) -> None:
+        self.f_call_fmter = f_call_fmter
+        self.f_return_fmter = f_return_fmter
+
+    def __call__(self, f: Callable) -> Callable:
+        def wrapper(*args, **kwargs) -> Any:
+            print(self.f_call_fmter(f, *args, **kwargs))
 
             res = f(*args, **kwargs)
 
-            print(f_return_fmter(f, res, *args, **kwargs))
+            print(self.f_return_fmter(f, res, *args, **kwargs))
 
             return res
-        return _wrapper
-    return wrapper
+        return wrapper
 
 
 @trace(fmt_f_call, fmt_f_return)
