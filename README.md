@@ -1,4 +1,4 @@
-# python-guide
+# python-note
 
 Personal knowledge note to write practical code in Python.  
 
