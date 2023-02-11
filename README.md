@@ -1,6 +1,6 @@
 # python-guide
 
-Personal guide to write practical code in Python.  
+Personal knowledge note to write practical code in Python.  
 
 Assuming Python version is >= 3.10.  
 
