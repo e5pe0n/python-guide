@@ -18,6 +18,7 @@ Assuming Python version is >= 3.10.
   - [Decorator](#decorator)
 - [Special Methods (Dunder Methods)](#special-methods-dunder-methods)
 - [Enums](#enums)
+- [Coroutines](#coroutines)
 
 <br>
 
@@ -1443,5 +1444,224 @@ print([p.name for p in Permission])  # ['READ', 'WRITE', 'EXECUTE']
 
 # listing *value*s
 print([p.value for p in Permission])    # ['read', 'write', 'execute']
+
+```
+
+# Coroutines
+
+*Coroutine*s are program that run in parallel on one thread.  
+The mechanism is similar with the event loop of JavaScript.  
+Coroutines are pushed into the event queue.  
+First the event loop dequeues the event queue then runs the first coroutine.  
+When the coroutine comes to `await`, the event loop puts the coroutine aside then runs the next coroutine.  
+If `await` of one of the coroutine done, the event loop resumes the coroutine from after the `await`.  
+
+Coroutines are very effective to programs including network I/O.  
+For instance, we can do some tasks while waiting for some response returning.  
+
+
+```py
+# src/async/asleep1.py
+
+import asyncio
+import time
+
+
+async def f():
+    print(f"f() started at {time.strftime('%X')}")
+    await asyncio.sleep(5)  # some async task
+    print(f"f() finished at {time.strftime('%X')}")
+
+
+async def g():
+    print(f"g() started at {time.strftime('%X')}")
+    await asyncio.sleep(3)  # some async task
+    print(f"g() finished at {time.strftime('%X')}")
+
+
+async def main():
+    task1 = asyncio.create_task(f())
+    task2 = asyncio.create_task(g())
+
+    print(f"main() started at {time.strftime('%X')}")
+
+    await task1
+    await task2
+
+    print(f"main() finished at {time.strftime('%X')}")
+
+asyncio.run(main())
+
+"""
+main() started at 12:30:27
+f() started at 12:30:27
+g() started at 12:30:27
+g() finished at 12:30:30
+f() finished at 12:30:32
+main() finished at 12:30:32
+
+f() took 5s
+g() took 3s
+main() took 5s
+"""
+
+```
+
+```py
+# src/async/asleep2.py
+
+import asyncio
+import time
+
+
+async def f():
+    print(f"f() started at {time.strftime('%X')}")
+    await asyncio.sleep(3)  # some async task
+    print(f"f() finished at {time.strftime('%X')}")
+
+
+async def g():
+    print(f"g() started at {time.strftime('%X')}")
+    await asyncio.sleep(5)  # some async task
+    print(f"g() finished at {time.strftime('%X')}")
+
+
+async def main():
+    task1 = asyncio.create_task(f())
+    task2 = asyncio.create_task(g())
+
+    print(f"main() started at {time.strftime('%X')}")
+
+    await task1
+    await task2
+
+    print(f"main() finished at {time.strftime('%X')}")
+
+asyncio.run(main())
+
+"""
+main() started at 12:35:39
+f() started at 12:35:39
+g() started at 12:35:39
+f() finished at 12:35:42
+g() finished at 12:35:44
+main() finished at 12:35:44
+
+f() took 3s
+g() took 5s
+main() took 5s
+"""
+
+```
+
+## Warning: File I/O does NOT awaitable
+
+Important difference to the event loop of Node.js is that file I/O is not awaitable in Python.  
+File I/O stops the entire process running the event loop like `sleep()` in the code below, then the elapsed time of entire program doesn't improve.  
+
+```py
+# src/async/sleep.py
+
+import asyncio
+import time
+
+
+async def f():
+    print(f"f() started at {time.strftime('%X')}")
+    time.sleep(5)   # some task which could take much time on the process
+    print(f"f() finished at {time.strftime('%X')}")
+
+
+async def g():
+    print(f"g() started at {time.strftime('%X')}")
+    await asyncio.sleep(3)  # some async task
+    print(f"g() finished at {time.strftime('%X')}")
+
+
+async def main():
+    task1 = asyncio.create_task(f())
+    task2 = asyncio.create_task(g())
+
+    print(f"main() started at {time.strftime('%X')}")
+
+    await task1
+    await task2
+
+    print(f"main() finished at {time.strftime('%X')}")
+
+asyncio.run(main())
+
+"""
+main() started at 12:20:20
+f() started at 12:20:20
+f() finished at 12:20:25
+g() started at 12:20:25
+g() finished at 12:20:28
+main() finished at 12:20:28
+
+f() took 5s
+g() took 3s
+main() took 8s
+
+`sleep(5)` in `f()` effects on the process where `main()` is running.
+Thus the entire event loop pause due to the subprocess.
+"""
+
+```
+
+___
+
+
+An asynchronous subprocess example
+
+```py
+# src/async/asubproces.py
+
+import asyncio
+import time
+
+
+async def f():
+    print(f"f() started at {time.strftime('%X')}")
+    proc = await asyncio.create_subprocess_exec("sleep", "5")
+    await proc.wait()   # some subprocess
+    print(f"f() finished at {time.strftime('%X')}")
+
+
+async def g():
+    print(f"g() started at {time.strftime('%X')}")
+    await asyncio.sleep(3)  # some async task
+    print(f"g() finished at {time.strftime('%X')}")
+
+
+async def main():
+    task1 = asyncio.create_task(f())
+    task2 = asyncio.create_task(g())
+
+    print(f"main() started at {time.strftime('%X')}")
+
+    await task1
+    await task2
+
+    print(f"main() finished at {time.strftime('%X')}")
+
+asyncio.run(main())
+
+"""
+main() started at 12:10:57
+f() started at 12:10:57
+g() started at 12:10:57
+g() finished at 12:11:00
+f() finished at 12:11:02
+main() finished at 12:11:02
+
+f() took 5s
+g() took 3s
+main() took 5s
+
+The subprocess spawned by `f()` run as a different process
+to the process where `main()` is running.
+Thus the entire event loop doesn't pause due to the subprocess.
+"""
 
 ```
